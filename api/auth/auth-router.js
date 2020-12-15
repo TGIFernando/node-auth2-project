@@ -3,6 +3,8 @@ const jwt = require("jsonwebtoken");
 const router = require("express").Router();
 const { jwtSecret } = require("../../config/secrets")
 const M = require('./auth-model')
+const checkRole = require('./auth-middleware/check-role-middleware')
+const restrict = require('./auth-middleware/restricted-middleware')
 
 router.post("/register", async (req, res) => {
     const credentials = req.body
@@ -54,5 +56,14 @@ function makeToken(user) {
     }
     return jwt.sign(payload, jwtSecret, options)
 }
+
+router.get("/users", restrict, checkRole("admin"), (req, res) => {
+    M.find()
+        .then(users => {
+            res.json(users)
+        }) .catch (err => {
+            res.json(err)
+        })
+})
 
 module.exports = router
